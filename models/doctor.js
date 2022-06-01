@@ -8,12 +8,7 @@ const Member = sequelize.define("member", {
         allowNull: false,
         primaryKey: true,
     },
-    firstName: {
-        type: Sequelize.STRING(80),
-        defaultValue: "",
-        allowNull: true,
-    },
-    lastName: {
+    name: {
         type: Sequelize.STRING(80),
         defaultValue: "",
         allowNull: true,

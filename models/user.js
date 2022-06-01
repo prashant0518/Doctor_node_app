@@ -1,7 +1,7 @@
 const Sequelize = require("sequelize");
 const sequelize = require("../utils/database");
 
-const User = sequelize.define("user", {
+const Patient = sequelize.define("patient", {
     id: {
       type: Sequelize.INTEGER,
       autoIncrement: true,
@@ -34,4 +34,4 @@ const User = sequelize.define("user", {
           allowNull:true
       }
 })
-module.exports = User
+module.exports = Patient
