@@ -60,7 +60,7 @@ exports.signup = async function (req, res, _next) {
 
 }
 
-exports.adminLogin =async(req,res,_next)=>{
+exports.login =async(req,res,_next)=>{
 
     const email = req.body.email.toLowerCase();
     const password = req.body.password;

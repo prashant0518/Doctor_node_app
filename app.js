@@ -1,4 +1,7 @@
 const dotenv = require("dotenv");
+dotenv.config({ path: "./opt/.env" });
+const isAuth = require("./middlewares/auth");
+
 // dotenv.config({ path: "/opt/shedassist-dev/.env" });
 const bodyParser = require("body-parser");
 var express = require("express");
@@ -10,7 +13,9 @@ const Doctor = require('./models/doctor')
 const patientRoute = require("./routes/patient");
 const doctorRoute = require("./routes/doctor");
 const authRoute = require('./routes/authenticate')
+const sequelize = require("./utils/database");
 
+var app = express();
 app.use(
   bodyParser.json({
     extended: false,
@@ -18,16 +23,15 @@ app.use(
   })
 );
 
-var app = express();
 app.use(cors())
 app.use(isAuth);
 
 var http = require("http").Server(app);
-var port = process.env.PORT || 4100;
+var port = process.env.PORT || 3132;
 
 app.use('/auth',authRoute)
-app.use("/patient", patientRoute);
-app.use("/doctor", doctorRoute);
+// app.use("/patient", patientRoute);
+// app.use("/doctor", doctorRoute);
 
 
 app.start = app.listen = function () {
@@ -46,7 +50,7 @@ Doctor.hasMany(Appointment)
 
 
 // sequelize
-//   .sync({force: false})
+//   .sync({force: true})
 //   .then((result) => {})
 //   .catch((err) => {
 //       console.log(err);
