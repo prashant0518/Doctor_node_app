@@ -1,7 +1,7 @@
 const Sequelize = require("sequelize");
 const sequelize = require("../utils/database");
 
-const Member = sequelize.define("member", {
+const Doctor = sequelize.define("doctor", {
     id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
@@ -14,6 +14,17 @@ const Member = sequelize.define("member", {
         allowNull: true,
     },
     email: {
+        type: Sequelize.STRING(90),
+        defaultValue: "",
+        // unique: true,
+        allowNull: true,
+    },
+    productId: {
+        type: Sequelize.STRING(90),
+        defaultValue: "",
+        allowNull: true,
+    },
+    priceId: {
         type: Sequelize.STRING(90),
         defaultValue: "",
         // unique: true,
@@ -37,6 +48,7 @@ const Member = sequelize.define("member", {
         type:Sequelize.STRING,
         allowNull:true
     }
+
 });
 
-module.exports = Member;
+module.exports = Doctor;

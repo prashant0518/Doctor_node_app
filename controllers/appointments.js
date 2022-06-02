@@ -1,21 +1,30 @@
 const Appointment = require("../models/appointment");
 const Patient = require("../models/user");
 const Doctor = require("../models/doctor");
+// const Member = require("../models/doctor");
 
 
 
 
 
 exports.addAppointment = async function (req, res, _next) {
-    if (!req.isAuth) {
+    const userType = req.type;
+    console.log(userType)
+    if (!req.isAuth || userType !== 'patient') {
         res.status(401).json("Unauth request");
         return;
     }
 
-    const { date, time,  patientDetails ,doctorId } = req.body;
+    let { date, time, doctorId } = req.body;
 
-    const userType = req.type;
     const email = req.email
+
+    const timez = time.split(':')
+    if (timez[1] >= 1 && timez[1] <= 8) time = `${timez[0]}:00 `
+    else if (timez[1] > 8 && timez[1] <= 23 ) time = `${timez[0]}:15 `
+    else if (timez[1] > 23 && timez[1] <= 38) time = `${timez[0]}:30 `
+    else if (timez[1] >38  && timez[1] <= 53) time = `${timez[0]}:45 `
+    else time = `${timez[1] + 1}:00`
 
 
     Patient.findOne({
@@ -26,11 +35,11 @@ exports.addAppointment = async function (req, res, _next) {
 
     }).then(async (user) => {
         if (user) {
-           
+
             // const {email} = patientDetails 
-            const { phoneNumber, patientName } = patientDetails
-            
-            const appointmentExist = await Appointment.findOne({ where: { patientId:user.id, date, time ,doctorId } })
+            // const { phoneNumber, patientName } = patientDetails
+
+            const appointmentExist = await Appointment.findOne({ where: { patientId: user.id, appointment_date: date, appointment_time: time } })
             if (appointmentExist) {
                 return res.status(200).json({
                     status: 0,
@@ -41,7 +50,7 @@ exports.addAppointment = async function (req, res, _next) {
             // const BIData = await BusinessInsurance.findOne({ where: { insuranceId } })
             const patient = await Appointment.create({
                 isActive: true,
-                appointment_date,doctorId, appointment_time, patientId:user.id, approval_status: 'waiting',payment_status:'not paid'
+                appointment_date: date, doctorId, appointment_time: time, patientId: user.id, approval_status: 'waiting', payment_status: 'not paid'
             });
 
             res.status(200).json({
@@ -50,7 +59,7 @@ exports.addAppointment = async function (req, res, _next) {
                 message: "Appointment added to business successfully",
                 data: patient
             });
-        }else{
+        } else {
             res.status(200).json({
                 status: 0,
                 code: "UserNotExist",
@@ -63,7 +72,7 @@ exports.addAppointment = async function (req, res, _next) {
     })
 }
 
-exports.getAppointment = async function(req,res){
+exports.getAppointment = async function (req, res) {
     if (!req.isAuth) {
         res.status(401).json("Unauth request");
         return;
@@ -72,28 +81,28 @@ exports.getAppointment = async function(req,res){
     const userType = req.type
     const email = req.email
 
-    if(userType =='doctor'){
-        const doctor =await Doctor.findOne({where:{email}})
-        if(doctor){
-            const appointments = await Appointment.findAll({where:{doctorId:doctor.id}})
-            res.status(200).json({status:1,code:'AppointmentFetchedSuccesfully',message:"Doctor appointment fetched successfully",data:appointments})
-        }else{
-            res.status(200).json({status:0,code:'DoctorNotExist',message:"This Doctor is not exist"})
+    if (userType == 'doctor') {
+        const doctor = await Doctor.findOne({ where: { email } })
+        if (doctor) {
+            const appointments = await Appointment.findAll({ where: { doctorId: doctor.id },include: [{ model: Patient, attributes: ['name', 'id', 'isActive'] }]  })
+            res.status(200).json({ status: 1, code: 'AppointmentFetchedSuccesfully', message: "Doctor appointment fetched successfully", data: appointments })
+        } else {
+            res.status(200).json({ status: 0, code: 'DoctorNotExist', message: "This Doctor is not exist" })
 
         }
-    }else{
-        const patient =await Patient.findOne({where:{email}})
-        if(patient){
-            const appointments = await Appointment.findAll({where:{patientId:patient.id}})
-            res.status(200).json({status:1,code:'AppointmentFetchedSuccesfully',message:"Patient appointment fetched successfully",data:appointments})
-        }else{
-            res.status(200).json({status:0,code:'PatientNotExist',message:"This Patient is not exist"})
+    } else {
+        const patient = await Patient.findOne({ where: { email } })
+        if (patient) {
+            const appointments = await Appointment.findAll({ where: { patientId: patient.id }, include: [{ model: Doctor, attributes: ['name', 'id', 'fee'] }] })
+            res.status(200).json({ status: 1, code: 'AppointmentFetchedSuccesfully', message: "Patient appointment fetched successfully", data: appointments })
+        } else {
+            res.status(200).json({ status: 0, code: 'PatientNotExist', message: "This Patient is not exist" })
 
         }
     }
 }
 
-exports.updateAppointment=async function(req,res){
+exports.updateAppointment = async function (req, res) {
     if (!req.isAuth) {
         res.status(401).json("Unauth request");
         return;
@@ -101,50 +110,54 @@ exports.updateAppointment=async function(req,res){
 
     const userType = req.type
     const email = req.email
-    const appointmentId = req.appointmentId
-    const {patientDetails} = req.body
-    if(userType =='doctor'){
-        const doctor =await Doctor.findOne({where:{email}})
-        if(doctor){
-            const appointment = await Appointment.findOne({where:{id:appointmentId}})
-            appointment.approval_status ='confirmed'
-           await appointment.save();
-            res.status(200).json({status:1,code:'AppointmentUpdatedSuccesfully',message:"Doctor appointment updated successfully",data:appointments})
-        }else{
-            res.status(200).json({status:0,code:'DoctorNotExist',message:"This Doctor is not exist"})
+    const appointmentId = req.body.appointmentId
+    const { time, date } = req.body
+    if (userType == 'doctor') {
+        const doctor = await Doctor.findOne({ where: { email } })
+        if (doctor) {
+            const appointment = await Appointment.findOne({ where: { id: appointmentId } })
+            appointment.approval_status = 'confirmed'
+            await appointment.save();
+            res.status(200).json({ status: 1, code: 'AppointmentUpdatedSuccesfully', message: "Doctor appointment updated successfully", data: appointment })
+        } else {
+            res.status(200).json({ status: 0, code: 'DoctorNotExist', message: "This Doctor is not exist" })
 
         }
-    }else{
-        const patient =await Patient.findOne({where:{email}})
-        if(patient){
-            const {time,date,doctorId} = patientDetails
-            const appointment = await Appointment.findOne({where:{id:appointmentId}})
+    } else {
+        const patient = await Patient.findOne({ where: { email } })
+        if (patient) {
+            // const {time,date} = patientDetails
+            const appointment = await Appointment.findOne({ where: { id: appointmentId } })
             appointment.appointment_time = time
             appointment.appointment_date = date
-            appointment.doctorId = doctorId
             await appointment.save();
             // appointment_date,doctorId, appointment_time, patientId:user.id, approval_status: 'waiting',payment_status:'not paid'
-            res.status(200).json({status:1,code:'AppointmentFetchedSuccesfully',message:"Patient appointment fetched successfully",data:appointments})
-        }else{
-            res.status(200).json({status:0,code:'PatientNotExist',message:"This Patient is not exist"})
+            res.status(200).json({ status: 1, code: 'AppointmentFetchedSuccesfully', message: "Patient appointment fetched successfully", data: appointment })
+        } else {
+            res.status(200).json({ status: 0, code: 'PatientNotExist', message: "This Patient is not exist" })
 
         }
     }
 
 }
 
-exports.deleteAppointment = async function(req,res){
+exports.deleteAppointment = async function (req, res) {
     if (!req.isAuth) {
         res.status(401).json("Unauth request");
         return;
     }
-    const {appointmentId} = req.body
-
-    const appointment = await Appointment.destroy({where:{id:appointmentId}})
-    if(appointment){
-        res.status(200).json({status:1,code:'AppointmentDeletedSuccesfully',message:"Appointment deleted successfully",data:appointment})
-    }else{
-        res.status(200).json({status:0,code:'AppointmentNotFound',message:"Appointment not found",data:appointment})
+    const { appointmentId } = req.query
+try {
+    
+    const appointment = await Appointment.destroy({ where: { id: appointmentId } })
+    if (appointment) {
+        res.status(200).json({ status: 1, code: 'AppointmentDeletedSuccesfully', message: "Appointment deleted successfully", data: appointment })
+    } else {
+        res.status(200).json({ status: 0, code: 'AppointmentNotFound', message: "Appointment not found", data: appointment })
 
     }
+} catch (error) {
+    console.log(error)
+    res.status(500).json({ status: 0, code: "AdminGetError", message: "Something went wrong.", error });
+}
 }

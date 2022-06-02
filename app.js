@@ -11,7 +11,7 @@ const Patient = require('./models/user')
 const Appointment = require('./models/appointment')
 const Doctor = require('./models/doctor')
 const patientRoute = require("./routes/patient");
-const doctorRoute = require("./routes/doctor");
+const appointmentRoute = require("./routes/appointment");
 const authRoute = require('./routes/authenticate')
 const sequelize = require("./utils/database");
 
@@ -30,8 +30,8 @@ var http = require("http").Server(app);
 var port = process.env.PORT || 3132;
 
 app.use('/auth',authRoute)
-// app.use("/patient", patientRoute);
-// app.use("/doctor", doctorRoute);
+app.use("/patient", patientRoute);
+app.use("/api", appointmentRoute);
 
 
 app.start = app.listen = function () {
@@ -45,6 +45,10 @@ http.listen(port, function () {
 Patient.hasMany(Appointment);
 Doctor.hasMany(Patient)
 Doctor.hasMany(Appointment)
+Appointment.belongsTo(Doctor)
+Appointment.belongsTo(Patient)
+
+
 
 
 

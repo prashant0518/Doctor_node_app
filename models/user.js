@@ -19,6 +19,11 @@ const Patient = sequelize.define("patient", {
         unique: true,
         allowNull: true,
       },
+      phone: {
+        type: Sequelize.STRING(90),
+        defaultValue: "",
+        allowNull: true,
+      },
       password: {
         type: Sequelize.STRING,
         defaultValue: "",
