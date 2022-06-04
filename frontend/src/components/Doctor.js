@@ -1,9 +1,22 @@
-import React ,{useState} from 'react'
+import React ,{useState,useEffect} from 'react'
 import axios from 'axios'
 
 export default function Doctor(props) {
-    const {data,user,deleteApt,handleFunc,appointment,logOut} = props
+    const {data,user,deleteApt,handleFunc,logOut} = props
+    const [appointment, setAppointment] = useState([])
 
+    useEffect(() => {
+        const token = localStorage.getItem('myToken')
+        const headers = {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + token,
+        };
+        axios.get('http://localhost:3132/api/appointment', { headers })
+            .then(res => {
+                setAppointment(res.data?.data?.appointment)
+            })
+       
+    }, [])
     const updateStatus=(id)=>{
         const token = localStorage.getItem('myToken')
         const headers = {

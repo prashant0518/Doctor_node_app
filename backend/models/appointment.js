@@ -27,6 +27,11 @@ const Appointment = sequelize.define("appointment", {
         defaultValue: "",
         allowNull: true,
     },
+    payment_intent: {
+        type: Sequelize.STRING(90),
+        defaultValue: "",
+        allowNull: true,
+    },
     extras: {
         type: Sequelize.JSONB,
           allowNull:true,

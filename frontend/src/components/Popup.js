@@ -8,7 +8,7 @@ export default function Popup({ data }) {
         memberId: data.id
     })
     const [isBook,setIsBook] = useState(false)
-    console.log(data.id)
+ 
     const handleChange = (e) => {
         const { value, name } = e.target
         setApt({
@@ -17,7 +17,7 @@ export default function Popup({ data }) {
             doctorId:data.id
         })
     }
-    console.log(apt, "apt")
+
 
     const bookApt =()=>{
         const token = localStorage.getItem('myToken')
@@ -27,7 +27,14 @@ export default function Popup({ data }) {
         };
         axios.post('http://localhost:3132/api/appointment', apt,{ headers })
             .then(res => {
-              setIsBook(true)
+                
+                if(res?.data?.status==1){
+                    setIsBook(true)
+                }
+                else{
+                    alert(res.data.message)
+                }
+
             })
     }
     return (

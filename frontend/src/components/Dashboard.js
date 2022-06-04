@@ -8,14 +8,15 @@ import Doctor from './Doctor'
 export default function Dashboard() {
     const [data, setData] = useState([])
     const [user, setUser] = useState('')
+    const [loading, setLoading] = useState(true)
     const [modalData, setModalData] = useState(0)
     const [deleteModal, setDeleteModal] = useState('')
-    const [appointment, setAppointment] = useState([])
+ 
     const logOut = () => {
         localStorage.removeItem('myToken')
         window.location.reload()
     }
-    
+
     useEffect(() => {
         const token = localStorage.getItem('myToken')
         const headers = {
@@ -25,13 +26,11 @@ export default function Dashboard() {
         axios.get("http://localhost:3132/patient/get_data", { headers })
             .then(res => {
                 console.log(res.data, "dash")
-                setData(res.data.allAppointments)
+                setData(res.data.doctors)
                 setUser(res.data.user)
+                setLoading(false)
             })
-        axios.get('http://localhost:3132/api/appointment', { headers })
-            .then(res => {
-                setAppointment(res.data.data)
-            })
+        
 
     }, [])
 
@@ -42,25 +41,28 @@ export default function Dashboard() {
     const deleteApt = (data) => {
         setDeleteModal(data)
     }
-    
+    return (
+        <>
 
-        return (
-            <>
+            {!loading ?(
+                user.userType == "patient" ?
+                    <>
 
-         {user.userType=="patient" ?
-         <>
-         <Patient data={data} user={user} handleFunc={handleFunc} deleteApt={deleteApt} appointment={appointment} logOut={logOut} />
-          <Popup data={modalData} />
-          <DeleteModal data={deleteModal} />
-         </>
-         
-         :
-         <Doctor data={data} user={user} appointment={appointment} logOut={logOut}/>
-         } 
-           </>
-        )
-    
-    
-       
-    
+                        <Patient data={data} user={user} handleFunc={handleFunc} deleteApt={deleteApt}  logOut={logOut} />
+                        <Popup data={modalData} />
+                        <DeleteModal data={deleteModal} />
+                    </>
+
+                    :
+                    <Doctor data={data} user={user}  logOut={logOut} />)
+                :
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>}
+        </>
+    )
+
+
+
+
 }

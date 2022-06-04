@@ -21,7 +21,7 @@ function App() {
         <Switch>
           <Route exact path="/">
             {
-             token ? <Redirect to='/dashboard' /> : <Login setLoginUser={setLoginUser}/>
+             token && token!==undefined ? <Redirect to='/dashboard' /> : <Login setLoginUser={setLoginUser}/>
             }
           </Route>
           {/* <Route exact path='/' render={() => authorized ?<Redirect to='/dashboard' />: <Login setLoginUser={setLoginUser}/>} /> */}

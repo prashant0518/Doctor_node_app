@@ -83,9 +83,11 @@ exports.getAppointment = async function (req, res) {
 
     if (userType == 'doctor') {
         const doctor = await Doctor.findOne({ where: { email } })
+        const docJson =  JSON.parse(JSON.stringify(doctor))
+        docJson.userType = 'doctor'
         if (doctor) {
             const appointments = await Appointment.findAll({ where: { doctorId: doctor.id },include: [{ model: Patient, attributes: ['name', 'id', 'isActive'] }]  })
-            res.status(200).json({ status: 1, code: 'AppointmentFetchedSuccesfully', message: "Doctor appointment fetched successfully", data: appointments })
+            res.status(200).json({ status: 1, code: 'AppointmentFetchedSuccesfully', message: "Doctor appointment fetched successfully", data: {appointment:appointments,user:docJson} })
         } else {
             res.status(200).json({ status: 0, code: 'DoctorNotExist', message: "This Doctor is not exist" })
 
@@ -94,7 +96,7 @@ exports.getAppointment = async function (req, res) {
         const patient = await Patient.findOne({ where: { email } })
         if (patient) {
             const appointments = await Appointment.findAll({ where: { patientId: patient.id }, include: [{ model: Doctor, attributes: ['name', 'id', 'fee'] }] })
-            res.status(200).json({ status: 1, code: 'AppointmentFetchedSuccesfully', message: "Patient appointment fetched successfully", data: appointments })
+            res.status(200).json({ status: 1, code: 'AppointmentFetchedSuccesfully', message: "Patient appointment fetched successfully", data: {appointment:appointments} })
         } else {
             res.status(200).json({ status: 0, code: 'PatientNotExist', message: "This Patient is not exist" })
 

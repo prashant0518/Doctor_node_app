@@ -5,6 +5,8 @@ import { useHistory } from "react-router-dom"
 
 const Register = () => {
 
+    const [loading, setLoading] = useState(false)
+    
     const history = useHistory()
 
     const [user, setUser] = useState({
@@ -25,16 +27,20 @@ const Register = () => {
     }
 
     const register = () => {
+        setLoading(true)
         const { name, email, password, reEnterPassword,type } = user
         if (name && email && password && (password === reEnterPassword)&&type) {
             axios.post("http://localhost:3132/auth/register", user)
                 .then(res => {
-                    console.log(res)
+                    // console.log(res)
+
                     alert(res.data.message)
+                    setLoading(false)
                     history.push("/login")
                 })
         } else {
             alert("invlid input")
+            setLoading(false)
         }
 
     }
@@ -64,7 +70,9 @@ const Register = () => {
             </div>
            {user.type=='doctor' ? <input type="text" name="fee" value={user.fee} placeholder="Consultation fee" onChange={handleChange}></input>:""}
 
-            <div className="button" onClick={register} >Register</div>
+            <div className="button" onClick={register} >{loading ? <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div> : 'Register'}</div>
             <div>or</div>
             <div className="button" onClick={() => history.push("/login")}>Login</div>
         </div>
