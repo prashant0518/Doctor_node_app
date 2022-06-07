@@ -1,19 +1,20 @@
-const dotenv = require("dotenv");
-dotenv.config({ path: "./opt/.env" });
-const isAuth = require("./middlewares/auth");
+const dotenv = require("dotenv")
+dotenv.config({ path: "./opt/.env" })
+const isAuth = require("./middlewares/auth")
 
 // dotenv.config({ path: "/opt/shedassist-dev/.env" });
-const bodyParser = require("body-parser");
-var express = require("express");
-const { Op } = require("sequelize");
-const cors = require('cors');
+const bodyParser = require("body-parser")
+var express = require("express")
+const { Op } = require("sequelize")
+const cors = require('cors')
 const Patient = require('./models/user')
 const Appointment = require('./models/appointment')
 const Doctor = require('./models/doctor')
-const patientRoute = require("./routes/patient");
-const appointmentRoute = require("./routes/appointment");
+const patientRoute = require("./routes/patient")
+const appointmentRoute = require("./routes/appointment")
 const authRoute = require('./routes/authenticate')
-const sequelize = require("./utils/database");
+const sequelize = require("./utils/database")
+const path = require("path")
 
 var app = express();
 app.use(
@@ -29,10 +30,16 @@ app.use(isAuth);
 var http = require("http").Server(app);
 var port = process.env.PORT || 3132;
 
+// app.use(express.static("build"));
+
+
+
 app.use('/auth',authRoute)
 app.use("/patient", patientRoute);
 app.use("/api", appointmentRoute);
-
+// app.get("/", (req, res) => {
+//   res.sendFile(path.join(__dirname, "build", "index.html"));
+//  });
 
 app.start = app.listen = function () {
   return server.listen.apply(server, arguments);
